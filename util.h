@@ -12,10 +12,12 @@
 #define SERVER_STRING "Server: TinyHttpd/0.0.1\r\n"
 
 void unimplemented(const int client);
+void die(const char *s);
 void bad_request(int client);
 void not_found(int client);
 void cannot_execute(int client);
-void die(const char *s);
 void headers(int client, const char *filename);
+
+int get_line(int sock, char *buf, int size);
 
 #endif

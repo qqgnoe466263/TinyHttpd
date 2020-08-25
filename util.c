@@ -1,5 +1,38 @@
 #include "util.h"
+/*
+ * Get a line from a socket, whether the line ends in a newline,
+ * carriage return, or a CRLF combination. Terminates the string read
+ * with a null character. If no newline indicator is found before the
+ * end of the buffer, the string is terminated with a null. If any of
+ * the above three line terminators is read, the last character if the
+ * string will be a linefeed and the string will be terminated with a
+ * null character.
+ * */
 
+int get_line(int sock, char *buf, int size)
+{
+    int i = 0;
+    char c = '\x00';
+    int n = 0;
+    
+    while ((i < size - 1) && (c != '\n')) {
+        n = recv(sock, &c, 1, 0); 
+        if (n > 0) {
+            if (c == '\r') {
+                n = recv(sock, &c, 1, MSG_PEEK);
+                if ((n > 0) && (c == '\n'))
+                    recv(sock, &c, 1, 0);
+                else
+                    c = '\n';
+            }
+        }
+        buf[i] = c;
+        i++;
+    }
+    buf[i] = '\x00';
+
+    return i;
+}
 
 /* Return the informational HTTP headers about a file. */
 void headers(int client, const char *filename)

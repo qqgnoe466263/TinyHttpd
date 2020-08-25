@@ -10,3 +10,6 @@ httpd:
 
 debug: 
 	$(CC) $(CFLAGS) $(SRC) $(DEBUG) -o httpd
+
+clean:
+	rm httpd

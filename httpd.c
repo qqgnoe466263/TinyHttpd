@@ -16,8 +16,6 @@
 #include "util.h"
 
 #define ISspace(x) isspace((int)x)
-int get_line(int sock, char *buf, int size);
-
 
 void execute_cgi(int client, const char *path, const char *method, const char *query_string)
 {
@@ -36,11 +34,17 @@ void execute_cgi(int client, const char *path, const char *method, const char *q
     } else {
         /* POST */
         numchars = get_line(client, buf, sizeof(buf));
+#ifdef DEBUG
+        printf("[>] %s \n", buf);
+#endif
         while ((numchars > 0) && strcmp("\n", buf)) {
             buf[15] = '\x00';
             if (strcasecmp(buf, "Content-Length:") == 0)
                 content_length = atoi(&(buf[16]));
             numchars = get_line(client, buf, sizeof(buf));
+#ifdef DEBUG
+            printf("[>] %s", buf);
+#endif
         }
         /* if http header doesn't indicate the body size,
          * it is a bad request
@@ -80,8 +84,7 @@ void execute_cgi(int client, const char *path, const char *method, const char *q
         dup2(cgi_input[0], 0);
         close(cgi_output[0]);
         close(cgi_input[1]);
-
-        /* contruct env into child process env */
+        /* CGI env */
         sprintf(meth_env, "REQUEST_METHOD=%s", method);
         putenv(meth_env);
         if (strcasecmp(method, "GET") == 0) {
@@ -101,18 +104,29 @@ void execute_cgi(int client, const char *path, const char *method, const char *q
         if (strcasecmp(method, "POST") == 0) {
             for (int i = 0; i < content_length; i++) {
                 recv(client, &c, 1, 0);
+#ifdef DEBUG
+                printf("%c", c);
+#endif 
                 write(cgi_input[1], &c, 1);
             }
+#ifdef DEBUG
+            printf("\n");
+#endif 
         }
-        while (read(cgi_output[0], &c, 1) > 0)
+        while (read(cgi_output[0], &c, 1) > 0) {
+#ifdef DEBUG
+            printf("%c", c);
+#endif 
             send(client, &c, 1, 0);
-
+        }
+#ifdef DEBUG
+        printf("\n");
+#endif 
         close(cgi_output[0]);
         close(cgi_input[1]);
         waitpid(pid, &status, 0);
     }
 }
-
 
 /* 
  * Put the entire contents of a file out on a socket. This function
@@ -154,32 +168,6 @@ void serve_file(int client, const char *filename)
         cat(client, resource);
     }
     fclose(resource);
-}
-
-
-int get_line(int sock, char *buf, int size)
-{
-    int i = 0;
-    char c = '\x00';
-    int n = 0;
-    
-    while ((i < size - 1) && (c != '\n')) {
-        n = recv(sock, &c, 1, 0); 
-        if (n > 0) {
-            if (c == '\r') {
-                n = recv(sock, &c, 1, MSG_PEEK);
-                if ((n > 0) && (c == '\n'))
-                    recv(sock, &c, 1, 0);
-                else
-                    c = '\n';
-            }
-        }
-        buf[i] = c;
-        i++;
-    }
-    buf[i] = '\x00';
-
-    return i;
 }
 
    
