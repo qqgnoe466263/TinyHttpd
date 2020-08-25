@@ -74,9 +74,45 @@ void not_found(int client)
 	send(client, buf, strlen(buf), 0);
 	sprintf(buf, "your request because the resource specified\r\n");
 	send(client, buf, strlen(buf), 0);
-	sprintf(buf, "is unavailable or nonexistent.\r\n");
+	sprintf(buf, "is unavailable or non existent.\r\n");
 	send(client, buf, strlen(buf), 0);
 	sprintf(buf, "</body></html>\r\n");
 	send(client, buf, strlen(buf), 0);
 }
+
+/* Inform the client that a request it has made has a problem */
+void bad_request(int client)
+{
+	char buf[1024];
+
+	sprintf(buf, "HTTP/1.0 400 Bad Request\r\n");
+	send(client, buf, sizeof(buf), 0);
+	sprintf(buf, "Content-type: text/html\r\n");
+	send(client, buf, sizeof(buf), 0);
+	sprintf(buf, "\r\n");
+	send(client, buf, sizeof(buf), 0);
+	sprintf(buf, "<p>Your browser sent a bad request, ");
+	send(client, buf, sizeof(buf), 0);
+	sprintf(buf, "such as a POST without a Content-Length.\r\n");
+	send(client, buf, sizeof(buf), 0);
+}
+
+/* Inform the client that a CGI script could not be executed */
+void cannot_execute(int client)
+{
+	char buf[1024];
+
+	sprintf(buf, "HTTP/1.0 500 Internal Server Error\r\n");
+	send(client, buf, strlen(buf), 0);
+	sprintf(buf, "Content-type: text/html\r\n");
+	send(client, buf, strlen(buf), 0);
+	sprintf(buf, "\r\n");
+	send(client, buf, strlen(buf), 0);
+	sprintf(buf, "<P>Error prohibited CGI execution.\r\n");
+	send(client, buf, strlen(buf), 0);
+}
+
+
+
+
 

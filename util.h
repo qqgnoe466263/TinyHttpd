@@ -14,6 +14,7 @@
 void unimplemented(const int client);
 void bad_request(int client);
 void not_found(int client);
+void cannot_execute(int client);
 void die(const char *s);
 void headers(int client, const char *filename);
 

@@ -19,12 +19,106 @@
 int get_line(int sock, char *buf, int size);
 
 
-void execute_cgi(client, path, method, query_string)
+void execute_cgi(int client, const char *path, const char *method, const char *query_string)
 {
-    return;
+    char buf[1024];
+    int cgi_output[2];
+    int cgi_input[2];
+    int numchars = 1;
+    int content_length = -1;
+    int status;
+
+    buf[0] = 'A'; buf[1] = '\x00';
+    if (strcasecmp(method, "GET") == 0) {
+        /* read & discard headers */
+        while ((numchars > 0) && strcmp("\n", buf))
+            numchars = get_line(client, buf, sizeof(buf));
+    } else {
+        /* POST */
+        numchars = get_line(client, buf, sizeof(buf));
+        while ((numchars > 0) && strcmp("\n", buf)) {
+            buf[15] = '\x00';
+            if (strcasecmp(buf, "Content-Length:") == 0)
+                content_length = atoi(&(buf[16]));
+            numchars = get_line(client, buf, sizeof(buf));
+        }
+        /* if http header doesn't indicate the body size,
+         * it is a bad request
+         * */
+        if (content_length < 0) {
+            bad_request(client);
+            return;
+        }
+    }
+    
+    sprintf(buf, "HTTP/1.0 200 OK\r\n");
+    send(client, buf, strlen(buf), 0);
+
+    if (pipe(cgi_output) < 0) {
+        cannot_execute(client);
+        return;
+    }
+    
+    if (pipe(cgi_input) < 0) {
+        cannot_execute(client);
+        return;
+    }
+
+    pid_t pid = 0;
+    if ((pid = fork()) < 0) {
+        cannot_execute(client);
+        return;
+    }
+
+    /* Using child process to exec cgi */
+    if (pid == 0) {
+        char meth_env[255];
+        char query_env[255];
+        char length_env[255];
+
+        dup2(cgi_output[1], 1);
+        dup2(cgi_input[0], 0);
+        close(cgi_output[0]);
+        close(cgi_input[1]);
+
+        /* contruct env into child process env */
+        sprintf(meth_env, "REQUEST_METHOD=%s", method);
+        putenv(meth_env);
+        if (strcasecmp(method, "GET") == 0) {
+            sprintf(query_env, "QUERY_STRING=%s", query_string);
+            putenv(query_env);
+        } else {
+            sprintf(length_env, "CONTENT_LENGTH=%d", content_length);
+            putenv(length_env);
+        }
+        execl(path, path, NULL);
+        exit(0);
+    } else {
+        /* Parent */
+        close(cgi_output[1]);
+        close(cgi_input[0]);
+        char c;
+        if (strcasecmp(method, "POST") == 0) {
+            for (int i = 0; i < content_length; i++) {
+                recv(client, &c, 1, 0);
+                write(cgi_input[1], &c, 1);
+            }
+        }
+        while (read(cgi_output[0], &c, 1) > 0)
+            send(client, &c, 1, 0);
+
+        close(cgi_output[0]);
+        close(cgi_input[1]);
+        waitpid(pid, &status, 0);
+    }
 }
 
 
+/* 
+ * Put the entire contents of a file out on a socket. This function
+ * is anmed after the UNIX "cat" cmd, because it might have been
+ * easier just to do something like pipe, fork, and exec("cat").
+ * */
 void cat(int client, FILE *resource)
 {
 	char buf[1024];
@@ -99,15 +193,17 @@ void accept_request(const int client)
     char url[255];
     char path[512];
     size_t i = 0, j = 0;
-    /* becomes true if server decides the is
-     * a cgi program
-     * */
+    /* becomes true if server decides the is a cgi program */
     int cgi = 0;
     struct stat st;
     char *query_string = NULL;
 
 
     int numchars = get_line(client, buf, sizeof(buf));
+
+#ifdef DEBUG
+    printf("[D] request : %s", buf);
+#endif
 
     /* First line is request line like POST GET .... methods */
     while (!ISspace(buf[j]) && (i < sizeof(method) - 1)) {
@@ -154,15 +250,16 @@ void accept_request(const int client)
         }
     }
 
-    printf("[D] %s \n", path);
+    sprintf(path, "htdocs%s", url);
     if (path[strlen(path) - 1] == '/')
         strcat(path, "index.html");
 
-    /* printf("[D] %s \n", path);
-     * -> htdocs/index.html
-     * */
+#ifdef DEBUG
+    printf("[D] request file : %s \n", path);
+#endif
     
     if (stat(path, &st) == -1) {
+        /* if the htdocs/index.html not found */
         while ((numchars > 0) && strcmp("\n", buf))
             numchars = get_line(client, buf, sizeof(buf));
         not_found(client);
@@ -216,8 +313,6 @@ int main()
 	struct sockaddr_in client_name;
     int client_name_len = sizeof(client_name);
     u_short port = 0;
-	
-
 
     server_sock = startup(&port);
     printf("[+] httpd running on port %d\n", port);
