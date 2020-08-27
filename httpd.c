@@ -285,6 +285,12 @@ int startup(u_short *port)
     name.sin_port = htons(*port);
     name.sin_addr.s_addr = htonl(INADDR_ANY);
 
+    {
+        int opt = 1;
+        int opt_len = sizeof(opt);
+        setsockopt(httpd, SOL_SOCKET, SO_REUSEADDR, &opt, opt_len);
+    }
+
     if (bind(httpd, (struct sockaddr *)&name, sizeof(name)) < 0)
         die("bind");
 
