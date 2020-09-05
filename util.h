@@ -8,6 +8,8 @@
 #include <netinet/in.h>
 #include <strings.h>
 #include <string.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #define SERVER_STRING "Server: TinyHttpd/0.0.1\r\n"
 
@@ -17,6 +19,7 @@ void bad_request(int client);
 void not_found(int client);
 void cannot_execute(int client);
 void headers(int client, const char *filename);
+void headers_img(int client, const char *filename);
 
 int get_line(int sock, char *buf, int size);
 

@@ -34,6 +34,24 @@ int get_line(int sock, char *buf, int size)
     return i;
 }
 
+void headers_img(int client, const char *filename)
+{
+    char buf[1024];
+	/* could use filename to determine file type */
+    (void)filename;
+	strcpy(buf, "HTTP/1.0 200 OK\r\n");
+	send(client, buf, strlen(buf), 0);
+	strcpy(buf, SERVER_STRING);
+	send(client, buf, strlen(buf), 0);
+	sprintf(buf, "Content-Type: image/png\r\n");
+	send(client, buf, strlen(buf), 0);
+    sprintf(buf, "Content-Length: 3844\r\n");
+	send(client, buf, strlen(buf), 0);
+	strcpy(buf, "\r\n");
+	send(client, buf, strlen(buf), 0);
+}
+
+
 /* Return the informational HTTP headers about a file. */
 void headers(int client, const char *filename)
 {

@@ -164,8 +164,17 @@ void serve_file(int client, const char *filename)
     if (resource == NULL)
         not_found(client);
     else {
-        headers(client, filename);
-        cat(client, resource);
+        printf("%s\n", filename);
+        if (!strncmp(filename, "htdocs/pikachu.png", 18)) {
+            headers_img(client, filename);
+            int fp = open(filename, O_RDONLY);
+            char buf[3844];
+            read(fp, buf, 3844);
+            send(client, buf, 3844, 0);
+        } else {
+            headers(client, filename);
+            cat(client, resource);      
+        }
     }
     fclose(resource);
 }
