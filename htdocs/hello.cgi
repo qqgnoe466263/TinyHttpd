@@ -9,11 +9,13 @@ if not name:
 
 if name == 'NCtfU':
     name = "To find the pikachu.png!"
+elif len(name) > 1000:
+    name = "Stop, What are you finding?"
 elif len(name) > 500:
     name = "U"
-elif len(name) > 200:
+elif len(name) > 400:
     name = "f"
-elif len(name) > 200:
+elif len(name) > 300:
     name = "t"
 elif len(name) > 200:
     name = "C"

@@ -164,7 +164,6 @@ void serve_file(int client, const char *filename)
     if (resource == NULL)
         not_found(client);
     else {
-        printf("%s\n", filename);
         if (!strncmp(filename, "htdocs/pikachu.png", 18)) {
             headers_img(client, filename);
             int fp = open(filename, O_RDONLY);
@@ -287,7 +286,7 @@ int startup(u_short *port)
         die("socket");
 
     if (*port == 0)
-        *port = 8080;
+        *port = 10201;
 
     memset(&name, 0, sizeof(name));
     name.sin_family = AF_INET;
