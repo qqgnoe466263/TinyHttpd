@@ -33,11 +33,12 @@ int main(int argc, char **argv)
     memset(buf, '\x00', 256);
 
     int content_length = get_content_length(argv[30]);
+    /*
     if (content_length > 256) {
         printf("No no no");
-        exit(0);
+        return 0;
     }
-
+    */
     for (int i = 0; i < content_length; i++)
         scanf("%c", &buf[i]);
 
