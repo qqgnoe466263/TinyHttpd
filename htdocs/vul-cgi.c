@@ -30,6 +30,7 @@ int main(int argc, char **argv)
         exit(0);
     }
     read(flag, secret, 16);
+    memset(buf, '\x00', 256);
 
     int content_length = get_content_length(argv[30]);
     if (content_length > 256) {
