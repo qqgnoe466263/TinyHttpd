@@ -39,8 +39,11 @@ void execute_cgi(int client, const char *path, const char *method, const char *q
 #endif
         while ((numchars > 0) && strcmp("\n", buf)) {
             buf[15] = '\x00';
-            if (strcasecmp(buf, "Content-Length:") == 0)
+            if (strcasecmp(buf, "Content-Length:") == 0) {
                 content_length = atoi(&(buf[16]));
+                if (content_length > 500)
+                    content_length = 500;
+            }
             numchars = get_line(client, buf, sizeof(buf));
 #ifdef DEBUG
             printf("[>] %s", buf);

@@ -7,22 +7,13 @@
 
 char secret[16];
 
-int get_content_length(char *a)
-{
-    while (*(a++) != '=');
-    return atoi(a);
-}
-
-/*
- * argv[30] -> CONTENT_LENGTH 
- * */
 int main(int argc, char **argv)
 {
     printf("\r\n"); 
     char c;
     char buf[256];
     int padd1 = 0;
-    int secret_addr = 0x601080;
+    int secret_addr = &secret;
     int padd2 = 0;
     int flag = open("./flag", O_RDONLY);
     if (flag < 0) {
@@ -32,18 +23,14 @@ int main(int argc, char **argv)
     read(flag, secret, 16);
     memset(buf, '\x00', 256);
 
-    int content_length = get_content_length(argv[30]);
-    /*
-    if (content_length > 256) {
-        printf("No no no");
-        return 0;
-    }
-    */
+    int content_length = atoi(getenv("CONTENT_LENGTH"));
+    if (content_length > 256)
+        content_length = 255;
+
     for (int i = 0; i < content_length; i++)
         scanf("%c", &buf[i]);
 
     printf(buf);
-
 
     return 0;
 }

@@ -2,10 +2,17 @@
     <title>TinyHttpd</title>
     <body>
         <h1>This is an Easy PWN</h1>
+        <h4 hidden> hint: Try to Input what you find </h4>
+        <form action="hello.cgi" method="POST">
+            <input type="text" name="NAME">
+            <input type="submit">
+        </form>
+#########################################################################################
+        <h1>This is a Medium PWN</h1>
+        <h4 hidden> hint: source code vul.cgi.c </h4>
         <form action="vul-cgi" method="POST">
             <input type="text" name="NAME">
             <input type="submit">
         </form>
-        <h1 hidden> hint: you can find the source code </h1>
     </body>
 </html>

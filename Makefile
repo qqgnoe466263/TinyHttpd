@@ -4,12 +4,18 @@ CFLAGS = -g -W -Wall -lpthread
 DEBUG = -D DEBUG
 SRC =  $(wildcard *.c)
 
-all: httpd
+all: httpd vul-cgi
 httpd:
 	$(CC) $(CFLAGS) $(SRC) -o httpd
+
+vul-cgi:
+	gcc ./htdocs/vul-cgi.c -o ./htdocs/vul-cgi
 
 debug: 
 	$(CC) $(CFLAGS) $(SRC) $(DEBUG) -o httpd
 
+run:
+	./httpd
+
 clean:
-	rm httpd
+	rm httpd ./htdocs/vul-cgi

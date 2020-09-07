@@ -8,9 +8,9 @@ if not name:
     name = 'Oh, no'
 
 if name == 'NCtfU':
-    name = "To find the pikachu.png!"
+    name = "<URL>"
 elif len(name) > 1000:
-    name = "Stop, What are you finding?"
+    name = "Stop, What did you find?"
 elif len(name) > 500:
     name = "U"
 elif len(name) > 400:
