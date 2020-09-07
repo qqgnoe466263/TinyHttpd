@@ -12,8 +12,8 @@ int main(int argc, char **argv)
     printf("\r\n"); 
     char c;
     char buf[256];
-    int padd1 = 0;
     int secret_addr = &secret;
+    int padd1 = 0;
     int padd2 = 0;
     int flag = open("./flag", O_RDONLY);
     if (flag < 0) {
